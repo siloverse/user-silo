@@ -13,6 +13,4 @@ dependencies {
     implementation(project(":web"))
 
     implementation(libs.bundles.spring.web)
-
-    testImplementation(libs.bundles.testcontainers)
 }
