@@ -15,14 +15,13 @@ class KeycloakJwtAuthenticationConverter : Converter<Jwt, AbstractAuthentication
         //   `as?` + fallback: a token with no realm_access (possible!) yields zero
         //   authorities, not an exception — auth must not crash on lean tokens
 
-        val authorities = roles.map { SimpleGrantedAuthority("ROLE_$it") }
+        val authorities = roles.map { SimpleGrantedAuthority("ROLE_$it".uppercase()) }
         //   ROLE_ prefix is the Spring convention hasRole() depends on:
-        //   hasRole("customer") secretly looks for authority "ROLE_customer"
+        //   hasRole("CUSTOMER") secretly looks for authority "ROLE_CUSTOMER";
+        //   realm roles are lowercase in Keycloak, uppercased here (platform convention)
 
         return JwtAuthenticationToken(
-            jwt,
-            authorities,
-            jwt.getClaimAsString("preferred_username") ?: jwt.subject.toString()
+            jwt, authorities, jwt.getClaimAsString("preferred_username") ?: jwt.subject.toString()
         )
         //   the Authentication itself: principal = the Jwt (what /me unwraps),
         //   authorities = your mapping, name = username instead of the sub UUID (log readability)
