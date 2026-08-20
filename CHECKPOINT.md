@@ -24,7 +24,19 @@ _Last updated: 2026-08-20. This document is the arbiter: if Claude asserts somet
 - **The converter must serve both token species** — human tokens and SA tokens differ in claims present, not just values.
 - **IDE-vs-build disputes, diagnostic ladder:** jar on classpath (mind `(c)` = constraint, not dependency) → file in right module → `gradlew compileKotlin` is the verdict → sync → invalidate caches. Never debug code while Gradle is green and only the editor complains.
 
+## Tests (2.6) — green 2026-08-20, three layers with distinct claims
+
+- **Converter unit tests** (pure, no Spring; `Jwt.withTokenValue` builder): happy path + the two regressions (no `realm_access` → empty authorities; no `preferred_username` → name falls back to sub). Today's incidents frozen as assertions.
+- **`jwt()` MockMvc tests** (`SecurityConfigurationTest`): the post-processor injects a ready-made Authentication — proves the RULES (401 anonymous / 200 authenticated / claims reach controller), NOT the decoder or converter wiring. Authorities passed explicitly — honest about what's covered. Boot 4 note: `AutoConfigureMockMvc` moved to `spring-boot-webmvc-test` (`org.springframework.boot.webmvc.test.autoconfigure`) — starter-test no longer brings technology test modules.
+- Suite passes with Keycloak down — decoder is a lazy supplier; issuer contacted on first VALIDATION, not startup.
+
+## Phase 2 Reflect (answered 2026-08-20)
+
+- 401 origin: anonymous → denied at `AuthorizationFilter` (bare challenge); bad token → `BearerTokenAuthenticationFilter` (`error="invalid_token"`).
+- No per-request Keycloak call: local signature check against cached JWKS; the one exception is unknown `kid` after key rotation → refetch (observed live after the realm rebuild).
+- Opaque+introspection trade: buys instant revocation + no claim leakage from leaked tokens; costs a network hop per request and puts the AS in every request's hot path (AS down = API down). Industry hybrid = short-lived JWTs (our 300s) + refresh tokens → revocation delay bounded by access-token lifetime.
+
 ## Parked
 
-- Tests (plan task 2.6): `spring-security-test` `jwt()` post-processor + one real-Keycloak issuer-handshake test.
+- One real-Keycloak integration test (issuer handshake / decoder wiring) — the only untested layer.
 - `hasRole('system')` guard on `POST /api/users` — Phase 4.2.
