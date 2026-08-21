@@ -3,6 +3,13 @@ server:
 spring:
   application:
     name: user-silo
+  datasource:
+    url: jdbc:postgresql://postgres.macgrant-platform.test:5432/siloverse
+    username: user-silo
+    password: ${USER_SILO_DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
   security:
     oauth2:
       resourceserver:
