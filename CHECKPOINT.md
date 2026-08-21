@@ -24,16 +24,26 @@ _Last updated: 2026-08-20. This document is the arbiter: if Claude asserts somet
 - **The converter must serve both token species** — human tokens and SA tokens differ in claims present, not just values.
 - **IDE-vs-build disputes, diagnostic ladder:** jar on classpath (mind `(c)` = constraint, not dependency) → file in right module → `gradlew compileKotlin` is the verdict → sync → invalidate caches. Never debug code while Gradle is green and only the editor complains.
 
-## Built & green (Phase 4.1, 2026-08-21) — persistence
+## Built & green (Phase 4.1 + 4.2, 2026-08-21/22) — persistence + guarded write endpoint
 
-- **Flyway migrates on startup**: `V1__users` applied into `siloverse.user_silo` (id uuid pk, keycloak_id unique, email unique, display_name, created_at, updated_at). Datasource: `siloverse` db as role `user-silo`, password via `USER_SILO_DB_PASSWORD` env var; NO schema config anywhere — the role's pinned `search_path` routes Flyway and Hibernate alike. `ddl-auto: validate` — Flyway owns the schema, Hibernate only checks it.
+- **Schema handling is ROUTE B — explicit everywhere (revised 2026-08-22, supersedes the search_path design):** migration DDL says `user_silo.users`, the entity says `@Table(schema = "user_silo")`, Flyway says `default-schema: user_silo`. The role's pinned `search_path` was REMOVED from Puppet (YAGNI — nothing consults it; security was never its job: ownership+USAGE grants are the wall, search_path is only name resolution). All three schema-aware components state the name openly; none rely on connection ambience.
+- **Flyway migrates on startup** into `siloverse.user_silo` (verified after a full DB rebuild from code): id uuid pk app-assigned, keycloak_id unique, email unique, display_name, timestamptz created/updated. `ddl-auto: validate` — Flyway owns the schema, Hibernate only checks it.
+- **`POST /api/users` guarded by `hasRole('SYSTEM')` — the role model's first real gate.** Verified matrix 2026-08-22: SA token → 201 + row; customer token → 403 (Keycloak role → claim → converter → rule, every layer firing); no token → 401; duplicate keycloakId → 409 (app check + DB unique as backstop). Contract DTOs in the `web` module — the jar auth-silo will consume in 4.3.
+- **Integration tests hermetic via Testcontainers**: `TestcontainersConfiguration` bean + `@ServiceConnection` (container-derived `ConnectionDetails` outrank the yml datasource). Test parity for route B comes free: Flyway's `createSchemas` default auto-creates `user_silo` in the blank container (permitted there — superuser), while on the VM the same willingness is blocked by grants — the "environment grants the space" layering holds by *permission*, not configuration.
 - **Boot 4 rule, third occurrence, now law:** a bare technology library integrates NOTHING — Boot 4's modular auto-configuration lives in `spring-boot-{starter-}X` modules. flyway-core alone = inert; `spring-boot-starter-flyway` + `flyway-database-postgresql` (runtimeOnly) is the pair. (Previous occurrences: oauth2-resource-server module, webmvc-test.)
 - Layering principle (journaled during the schema redesign): **the environment grants the space, the application fills it** — Puppet creates db/role/schema/grants, Flyway creates tables.
+
+## Lessons paid for (Phase 4, 2026-08-21/22)
+
+- **Kotlin entity needs a no-arg constructor only on READ** — persist works (you construct), first `findById` throws `No default constructor` (Hibernate constructs). Predicted before it fired. Fix now: defaults on all ctor params (synthetic no-arg); proper fix parked: `kotlin-jpa` compiler plugin belongs in the siloverse-build convention (version must track Kotlin).
+- **Jackson 2 vs 3 — same class name, different package, unrelated types.** Boot 4 wires `tools.jackson.databind.ObjectMapper`; autowiring `com.fasterxml.…ObjectMapper` finds no bean (those jars are transitive stragglers). Rule: check the package on every Jackson import. Convention implication parked: siloverse-build ships the Jackson-2 kotlin module, which registers into nothing Boot 4 manages.
+- **Jackson vs Hibernate instantiate opposite ways:** Jackson binds Kotlin primary constructors via parameter names (`javaParameters` flag); Hibernate demands no-arg + field writes. Same DTO shape, two frameworks, two strategies.
+- **Check the actual inputs before predicting:** two predictions lost to unread code (schema-qualified DDL, schema-pinned entity) — the arbiter cuts both ways.
 
 ## Tests (2.6) — green 2026-08-20, three layers with distinct claims
 
 - **Converter unit tests** (pure, no Spring; `Jwt.withTokenValue` builder): happy path + the two regressions (no `realm_access` → empty authorities; no `preferred_username` → name falls back to sub). Today's incidents frozen as assertions.
-- **`jwt()` MockMvc tests** (`SecurityConfigurationTest`): the post-processor injects a ready-made Authentication — proves the RULES (401 anonymous / 200 authenticated / claims reach controller), NOT the decoder or converter wiring. Authorities passed explicitly — honest about what's covered. Boot 4 note: `AutoConfigureMockMvc` moved to `spring-boot-webmvc-test` (`org.springframework.boot.webmvc.test.autoconfigure`) — starter-test no longer brings technology test modules.
+- **`jwt()` MockMvc tests** (`SecurityConfigurationIntegrationTest`): the post-processor injects a ready-made Authentication — proves the RULES (401 anonymous / 200 authenticated / claims reach controller), NOT the decoder or converter wiring. Authorities passed explicitly — honest about what's covered. Boot 4 note: `AutoConfigureMockMvc` moved to `spring-boot-webmvc-test` (`org.springframework.boot.webmvc.test.autoconfigure`) — starter-test no longer brings technology test modules.
 - Suite passes with Keycloak down — decoder is a lazy supplier; issuer contacted on first VALIDATION, not startup.
 
 ## Phase 2 Reflect (answered 2026-08-20)
