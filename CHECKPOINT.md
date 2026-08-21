@@ -24,6 +24,12 @@ _Last updated: 2026-08-20. This document is the arbiter: if Claude asserts somet
 - **The converter must serve both token species** — human tokens and SA tokens differ in claims present, not just values.
 - **IDE-vs-build disputes, diagnostic ladder:** jar on classpath (mind `(c)` = constraint, not dependency) → file in right module → `gradlew compileKotlin` is the verdict → sync → invalidate caches. Never debug code while Gradle is green and only the editor complains.
 
+## Built & green (Phase 4.1, 2026-08-21) — persistence
+
+- **Flyway migrates on startup**: `V1__users` applied into `siloverse.user_silo` (id uuid pk, keycloak_id unique, email unique, display_name, created_at, updated_at). Datasource: `siloverse` db as role `user-silo`, password via `USER_SILO_DB_PASSWORD` env var; NO schema config anywhere — the role's pinned `search_path` routes Flyway and Hibernate alike. `ddl-auto: validate` — Flyway owns the schema, Hibernate only checks it.
+- **Boot 4 rule, third occurrence, now law:** a bare technology library integrates NOTHING — Boot 4's modular auto-configuration lives in `spring-boot-{starter-}X` modules. flyway-core alone = inert; `spring-boot-starter-flyway` + `flyway-database-postgresql` (runtimeOnly) is the pair. (Previous occurrences: oauth2-resource-server module, webmvc-test.)
+- Layering principle (journaled during the schema redesign): **the environment grants the space, the application fills it** — Puppet creates db/role/schema/grants, Flyway creates tables.
+
 ## Tests (2.6) — green 2026-08-20, three layers with distinct claims
 
 - **Converter unit tests** (pure, no Spring; `Jwt.withTokenValue` builder): happy path + the two regressions (no `realm_access` → empty authorities; no `preferred_username` → name falls back to sub). Today's incidents frozen as assertions.
