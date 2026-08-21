@@ -1,3 +1,7 @@
-package io.github.siloverse.auth.error
+package io.github.siloverse.user.users.error
 
-class DuplicateUserException(email: String) : RuntimeException("user with this email [$email] already exists")
+import java.util.UUID
+
+class DuplicateUserException(keyCloakId: UUID) : RuntimeException(
+    "user with this KeyCloakId [$keyCloakId] already exists"
+)

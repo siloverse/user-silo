@@ -17,6 +17,7 @@ class SecurityConfiguration {
             .authorizeHttpRequests {
                 it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 it.requestMatchers("/actuator/health").permitAll()
+                it.requestMatchers("/api/users").hasRole("SYSTEM")
                 it.anyRequest().authenticated()
             }
             .oauth2ResourceServer {
