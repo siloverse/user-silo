@@ -22,4 +22,7 @@ dependencies {
 
     testImplementation(local.spring.security.test)
     testImplementation(local.spring.boot.webmvc.test)
+
+    testImplementation(local.spring.boot.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
 }

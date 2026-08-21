@@ -10,6 +10,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  flyway:
+    default-schema: user_silo
   security:
     oauth2:
       resourceserver:
