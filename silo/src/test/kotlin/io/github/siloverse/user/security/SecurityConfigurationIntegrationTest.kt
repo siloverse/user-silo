@@ -1,17 +1,20 @@
 package io.github.siloverse.user.security
 
+import io.github.siloverse.user.config.TestcontainersConfiguration
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.context.annotation.Import
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 
 @SpringBootTest
+@Import(TestcontainersConfiguration::class)
 @AutoConfigureMockMvc
-class SecurityConfigurationTest {
+class SecurityConfigurationIntegrationTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
