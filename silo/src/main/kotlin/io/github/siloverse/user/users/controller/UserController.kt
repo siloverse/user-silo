@@ -21,5 +21,6 @@ class UserController(private val userService: UserService) {
 
     @ExceptionHandler(DuplicateUserException::class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    fun duplicate(ignored: DuplicateUserException) = mapOf("error" to "duplicate keycloakId is not allowed")
+    fun duplicate(e: DuplicateUserException) =
+        mapOf("error" to "duplicate keycloakId is not allowed")
 }

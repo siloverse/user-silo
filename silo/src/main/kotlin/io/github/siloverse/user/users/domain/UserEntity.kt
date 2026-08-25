@@ -11,7 +11,7 @@ import java.util.*
 @Table(name = "users", schema = "user_silo")
 class UserEntity(
     @Id
-    var id: UUID,
+    val id: UUID = UUID.randomUUID(),
 
     @Column(name = "keycloak_id", nullable = false, unique = true)
     var keycloakId: UUID,

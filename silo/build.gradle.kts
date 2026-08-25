@@ -1,5 +1,6 @@
 plugins {
     id("io.github.siloverse.spring-boot-application")
+    kotlin("plugin.jpa") version "2.4.0"
 }
 
 application {
