@@ -24,6 +24,13 @@ _Last updated: 2026-08-20. This document is the arbiter: if Claude asserts somet
 - **The converter must serve both token species** — human tokens and SA tokens differ in claims present, not just values.
 - **IDE-vs-build disputes, diagnostic ladder:** jar on classpath (mind `(c)` = constraint, not dependency) → file in right module → `gradlew compileKotlin` is the verdict → sync → invalidate caches. Never debug code while Gradle is green and only the editor complains.
 
+## Lessons paid for (Phase 4.3 integration, 2026-08-26) — the save() routing saga
+
+- **`save()` routes by `isNew()`, and default `isNew()` is `id == null`.** Non-null (app-assigned) id → `merge`: Hibernate SELECTs, then reflectively **instantiates** a managed copy → needs the no-arg ctor → `InstantiationException` (hit live). Null id with no `@GeneratedValue` → `persist` → `IdentifierGenerationException: must be manually assigned` (also hit live). Both faces of one mechanism, now understood.
+- **Fix applied:** `kotlin("plugin.jpa")` in silo/build.gradle.kts (versionless resolution off the convention classpath FAILED — `kotlin-noarg` is a separate artifact the convention doesn't carry; resolved from portal pinned to Kotlin 2.4.0). Convention migration parked for siloverse-build. Entity id restored to app-assigned as ctor default `val id: UUID = UUID.randomUUID()` (no-arg plugin does NOT run initializers on hydration, so loads don't waste a UUID).
+- **Accepted cost, journaled:** assigned id ⇒ merge path ⇒ SELECT-before-INSERT on every create. Upgrades parked: `Persistable<UUID>` (Kotlin caveat: `getId()` platform-clash with the `id` property getter — private ctor param + explicit override) or `@GeneratedValue` (reverses the app-assigned decision; only on purpose).
+- Lombok non-answer, for the record: Lombok is a javac plugin — inert on Kotlin sources; kotlin-jpa/no-arg IS the Kotlin answer, and its synthetic ctor is invisible to Kotlin callers (better than defaults hack, which makes `UserEntity()` a legal nonsense expression).
+
 ## Built & green (Phase 4.1 + 4.2, 2026-08-21/22) — persistence + guarded write endpoint
 
 - **Schema handling is ROUTE B — explicit everywhere (revised 2026-08-22, supersedes the search_path design):** migration DDL says `user_silo.users`, the entity says `@Table(schema = "user_silo")`, Flyway says `default-schema: user_silo`. The role's pinned `search_path` was REMOVED from Puppet (YAGNI — nothing consults it; security was never its job: ownership+USAGE grants are the wall, search_path is only name resolution). All three schema-aware components state the name openly; none rely on connection ambience.

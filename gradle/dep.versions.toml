@@ -1,16 +1,26 @@
 [versions]
+siolverse-messaging = "1.0.10-SNAPSHOT"
 
 [libraries]
-
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 postgresql = { module = "org.postgresql:postgresql" }
+
+siloverse-messaging-core = { module = "io.github.siloverse:messaging-core", version.ref = "siolverse-messaging" }
+siloverse-messaging-rabbitmq = { module = "io.github.siloverse:messaging-rabbitmq", version.ref = "siolverse-messaging" }
+siloverse-messaging-spring = { module = "io.github.siloverse:messaging-spring", version.ref = "siolverse-messaging" }
+
 spring-boot-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
 spring-boot-webmvc-test = { module = "org.springframework.boot:spring-boot-webmvc-test" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
+
 [plugins]
 
 [bundles]
+jackson = ["jackson-databind","jackson-module-kotlin"]
+siloverse-messaging = ["siloverse-messaging-core", "siloverse-messaging-rabbitmq", "siloverse-messaging-spring"]
 spring-security = ["spring-boot-oauth2-resource-server"]

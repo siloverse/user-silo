@@ -15,8 +15,11 @@ dependencies {
 
     implementation(libs.bundles.spring.web)
     implementation(libs.spring.boot.starter.data.jpa)
+
     implementation(local.spring.boot.starter.flyway)
+    implementation(local.bundles.siloverse.messaging)
     implementation(local.bundles.spring.security)
+    implementation(local.bundles.jackson)
 
     runtimeOnly(local.flyway.postgresql)
     runtimeOnly(local.postgresql)
