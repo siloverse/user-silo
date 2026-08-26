@@ -10,5 +10,8 @@ class TestcontainersConfiguration {
 
     @Bean
     @ServiceConnection
-    fun postgres(): PostgreSQLContainer = PostgreSQLContainer("postgres:16")
+    fun postgres(): PostgreSQLContainer =
+        PostgreSQLContainer("postgres:16")
+            // same mechanism as production: unqualified messaging SQL resolves via currentSchema
+            .withUrlParam("currentSchema", "user_silo")
 }

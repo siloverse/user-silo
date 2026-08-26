@@ -4,9 +4,9 @@ spring:
   application:
     name: user-silo
   datasource:
-    url: jdbc:postgresql://postgres.macgrant-platform.test:5432/siloverse
+    url: jdbc:postgresql://postgres.macgrant-platform.test:5432/siloverse?currentSchema=user_silo
     username: user-silo
-    password: ${USER_SILO_DB_PASSWORD}
+    password: user-silo
   jpa:
     hibernate:
       ddl-auto: validate
