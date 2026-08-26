@@ -1,5 +1,6 @@
 [versions]
 siolverse-messaging = "1.0.10-SNAPSHOT"
+opentelemetry-logback-appender = "2.28.0-alpha"
 
 [libraries]
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
@@ -18,9 +19,27 @@ spring-security-test = { module = "org.springframework.security:spring-security-
 jackson-databind = { module = "tools.jackson.core:jackson-databind" }
 jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
+opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry-logback-appender" }
+spring-boot-starter-opentelemetry = { module = "org.springframework.boot:spring-boot-starter-opentelemetry" }
+
 [plugins]
 
 [bundles]
-jackson = ["jackson-databind","jackson-module-kotlin"]
-siloverse-messaging = ["siloverse-messaging-core", "siloverse-messaging-rabbitmq", "siloverse-messaging-spring"]
+jackson = ["jackson-databind", "jackson-module-kotlin"]
+siloverse-messaging = [
+    "siloverse-messaging-core",
+    "siloverse-messaging-rabbitmq",
+    "siloverse-messaging-spring"
+]
 spring-security = ["spring-boot-oauth2-resource-server"]
+
+siloverse-observability = [
+    "micrometer-registry-prometheus",
+    "opentelemetry-exporter-otlp",
+    "micrometer-tracing-bridge-otel",
+    "spring-boot-starter-opentelemetry",
+    "opentelemetry-logback-appender"
+]
