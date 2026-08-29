@@ -26,6 +26,7 @@ messaging:
     vhost: siloverse
 logging:
   level:
+    org.springframework.security: TRACE
     root: INFO
 management:
   otlp:

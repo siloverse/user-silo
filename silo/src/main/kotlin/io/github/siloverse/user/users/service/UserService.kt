@@ -6,6 +6,7 @@ import io.github.siloverse.user.users.domain.UserEntity
 import io.github.siloverse.user.users.error.DuplicateUserException
 import io.github.siloverse.user.users.persistence.UserRepository
 import io.github.siloverse.user.web.request.CreateUserRequest
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
