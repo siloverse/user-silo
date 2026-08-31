@@ -1,0 +1,54 @@
+server:
+  port: 10101
+spring:
+  application:
+    name: user-silo
+  datasource:
+    url: jdbc:postgresql://postgres.macgrant-platform.test:5432/siloverse?currentSchema=user_silo
+    username: user-silo
+    password: user-silo
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    default-schema: user_silo
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.macgrant-platform.test/realms/kyc
+messaging:
+  rabbitmq:
+    host: rabbitmq.macgrant-platform.test
+    port: 5672
+    username: admin
+    password: admin
+    vhost: siloverse
+logging:
+  level:
+    root: INFO
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false          # metrics via Prometheus scrape — deliberate (plan 6.x)
+  logging:
+    export:
+      otlp:
+        enabled: true
+  opentelemetry:
+    logging:
+      export:
+        otlp:
+          endpoint: https://otel.macgrant-platform.test/v1/logs
+    tracing:
+      export:
+        otlp:
+          endpoint: https://otel.macgrant-platform.test/v1/traces
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
