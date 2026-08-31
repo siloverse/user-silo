@@ -9,6 +9,10 @@ import io.github.siloverse.messaging.core.transport.PayloadSerializer
 import io.github.siloverse.messaging.rabbitmq.connection.RabbitMqConnectionSettings
 import io.github.siloverse.messaging.rabbitmq.connection.RabbitMqConnector
 import io.github.siloverse.messaging.rabbitmq.listener.RabbitMqMessageListener
+import io.github.siloverse.messaging.rabbitmq.retry.FailedDeliveryHandler
+import io.github.siloverse.messaging.rabbitmq.retry.RetryPolicy
+import io.github.siloverse.messaging.rabbitmq.retry.RetrySettings
+import io.github.siloverse.messaging.rabbitmq.retry.RetryingFailedDeliveryHandler
 import io.github.siloverse.messaging.rabbitmq.topology.RabbitMqTopologyDeclarer
 import io.github.siloverse.messaging.rabbitmq.transport.RabbitMqMessageTransport
 import io.github.siloverse.messaging.spring.config.AsyncMessagingConfiguration
@@ -61,6 +65,12 @@ class MessagingConfiguration {
         return RabbitMqMessageTransport(connection) // publisher confirms: return = durably accepted
     }
 
+    @Bean
+    fun retrySettings(environment: Environment): RetrySettings =
+        Binder.get(environment)
+            .bind("messaging.rabbitmq.default-policy", RetryPolicy::class.java)
+            .map { RetrySettings(it) }
+            .orElseGet { RetrySettings.DEFAULT }
 
     // -- serialization + names ----------------------------------------------
     @Bean
@@ -76,17 +86,22 @@ class MessagingConfiguration {
         )
     }
 
+    @Bean
+    fun failedDeliveryHandler(retrySettings: RetrySettings): FailedDeliveryHandler {
+        return RetryingFailedDeliveryHandler(retrySettings, "notification-silo")
+    }
 
     // -- topology: declared at startup, after the consumer registry freezes --
     @Bean
     fun rabbitTopology(
         connection: Connection, consumers: ConsumerRegistry?,
-        names: MessageNameRegistry?
+        names: MessageNameRegistry,
+        retrySettings: RetrySettings
     ): TopologyDeclaration {
         val declarer = RabbitMqTopologyDeclarer(connection)
         return TopologyDeclaration {
             declarer.declarePublisherTopology(names)
-            declarer.declareConsumerTopology("user-silo", consumers, names)
+            declarer.declareConsumerTopology("user-silo", consumers, names, retrySettings)
         }
     }
 
@@ -100,7 +115,8 @@ class MessagingConfiguration {
         mapper: ObjectMapper,
         dispatcher: MessageDispatcher,
         jdbcTemplate: JdbcTemplate,
-        transactionTemplate: TransactionTemplate
+        transactionTemplate: TransactionTemplate,
+        failedDeliveryHandler: FailedDeliveryHandler
     ): MessageListener {
         return object : MessageListener {
             private var consumeConnection: Connection? = null
@@ -113,7 +129,8 @@ class MessagingConfiguration {
                 listener = RabbitMqMessageListener(
                     consumeConnection, "user-silo",
                     consumers, names, JacksonPayloadDeserializer(mapper), dispatcher,
-                    JdbcInbox(jdbcTemplate, transactionTemplate)
+                    JdbcInbox(jdbcTemplate, transactionTemplate),
+                    failedDeliveryHandler
                 ) // omit if no dedup consumers
                 listener!!.start()
             }
