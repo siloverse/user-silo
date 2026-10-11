@@ -28,4 +28,5 @@ dependencies {
 
     testImplementation(local.spring.boot.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.rabbitmq)
 }
