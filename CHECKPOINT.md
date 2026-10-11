@@ -1,8 +1,16 @@
 # CHECKPOINT — user-silo
 
-_Last updated: 2026-08-20. This document is the arbiter: if Claude asserts something about this repo that isn't here or visible in the code, call it — that's drift._
+_Last updated: 2026-10-11. This document is the arbiter: if Claude asserts something about this repo that isn't here or visible in the code, call it — that's drift._
 
 **Role in the platform:** system of record for users. Resource server; will own db `user_silo` (JPA/Flyway, Phase 4) and publish `UserRegistered` via the outbox (Phase 5). Base package `io.github.siloverse.user`; modules: `silo` (assembly + business logic), `web` (API contract), `messages` (event contract, messaging-core-only), `ui`.
+
+## State at merge to main (2026-10-11)
+
+- Branch `runnable` (2026-08-19 to 2026-09-03) merged: project structure, releases 1.1.0/1.1.1/1.1.3, resource server (Phase 2), Flyway persistence + guarded `POST /api/users` (Phase 4), outbox publishing of `UserRegistered` with JDBC URL `currentSchema` (Phase 5), observability (Phase 6), messaging 1.0.11 tracing and retry-policy adoption, siloverse-build 1.11.1 (conventions now supply the JPA plugin, Jackson Kotlin module and the observability bundle).
+- **Released:** `1.1.3` (`web` and `messages` contract jars on GitHub Packages). auth-silo pins `web` and notification-silo pins `messages` at `1.1.4-SNAPSHOT` from mavenLocal.
+- **Pending release: `1.1.4`**, after messaging `1.0.11` is released and pinned here. Then bump auth-silo and notification-silo to `1.1.4`.
+- CI on this branch is red only because `messaging 1.0.11-SNAPSHOT` is not on GitHub Packages; the build is green locally.
+- Resolved since the parked list below was written: the `hasRole('system')` guard on `POST /api/users` (Phase 4.2). Still parked: one real-Keycloak integration test; `Persistable<UUID>` upgrade for the entity.
 
 ## Locked decisions
 
@@ -62,4 +70,4 @@ _Last updated: 2026-08-20. This document is the arbiter: if Claude asserts somet
 ## Parked
 
 - One real-Keycloak integration test (issuer handshake / decoder wiring) — the only untested layer.
-- `hasRole('system')` guard on `POST /api/users` — Phase 4.2.
+- ~~`hasRole('system')` guard on `POST /api/users` — Phase 4.2.~~ DONE 2026-08-22.
