@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost
+  description: Generated server url
+paths:
+  /api/users:
+    post:
+      tags:
+      - user-controller
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+        required: true
+      responses:
+        "409":
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CreateUserResponse"
+  /api/users/me:
+    get:
+      tags:
+      - me-controller
+      operationId: me
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties: {}
+  /:
+    get:
+      tags:
+      - hello-world-controller
+      operationId: helloWorld
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        keycloakId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          minLength: 1
+        displayName:
+          type: string
+          minLength: 1
+      required:
+      - displayName
+      - email
+      - keycloakId
+    CreateUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid

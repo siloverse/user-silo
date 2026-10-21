@@ -1,5 +1,7 @@
 [versions]
 siloverse-messaging = "1.0.12"
+# TEMPORARY snapshot pin (mavenLocal) until openapi 0.1.0 is released from java-library.
+siloverse-openapi = "0.1.0-SNAPSHOT"
 
 [libraries]
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
@@ -8,6 +10,7 @@ postgresql = { module = "org.postgresql:postgresql" }
 siloverse-messaging-core = { module = "io.github.siloverse:messaging-core", version.ref = "siloverse-messaging" }
 siloverse-messaging-rabbitmq = { module = "io.github.siloverse:messaging-rabbitmq", version.ref = "siloverse-messaging" }
 siloverse-messaging-spring = { module = "io.github.siloverse:messaging-spring", version.ref = "siloverse-messaging" }
+siloverse-openapi-springdoc = { module = "io.github.siloverse:openapi-springdoc", version.ref = "siloverse-openapi" }
 
 spring-boot-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
