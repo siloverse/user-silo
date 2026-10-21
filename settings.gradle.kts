@@ -16,7 +16,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.github.siloverse.parent") version "1.11.2" apply false
+    id("io.github.siloverse.parent") version "1.12.0" apply false
 }
 
 dependencyResolutionManagement {
@@ -49,3 +49,4 @@ include("silo")
 include("web")
 include("messages")
 include("ui")
+include("kotlin-client")

@@ -20,7 +20,8 @@ class SecurityConfiguration {
                 it.requestMatchers(
                     "/actuator/health",
                     "/actuator/prometheus",
-                    "/actuator/info"
+                    "/actuator/info",
+                    "/v3/api-docs", "/v3/api-docs.yaml", "/v3/api-docs/**"   // the OpenAPI contract is public: generated clients are built from it
                 ).permitAll()
                 it.requestMatchers("/api/users").hasRole("SYSTEM")
                 it.anyRequest().authenticated()

@@ -71,3 +71,11 @@ _Last updated: 2026-10-11. This document is the arbiter: if Claude asserts somet
 
 - One real-Keycloak integration test (issuer handshake / decoder wiring) — the only untested layer.
 - ~~`hasRole('system')` guard on `POST /api/users` — Phase 4.2.~~ DONE 2026-08-22.
+
+## OpenAPI contract + generated Kotlin client (2026-10-21, branch `openapi`)
+
+- **`openapi-spec.yaml` at the repo root is the contract.** `silo` applies `io.github.siloverse.openapi-spec` (siloverse-build 1.12.0) and depends on `io.github.siloverse:openapi-springdoc`; `OpenApiSpecTest` is one line, `OpenApiSpec.verify(mockMvc)`, on the hermetic Testcontainers context. Drift fails the test naming the fix; `./gradlew test -PupdateOpenApiSpec` rewrites the file. `SecurityConfiguration` permits `/v3/api-docs`, `/v3/api-docs.yaml`, `/v3/api-docs/**` (lesson: `/**` does not match the `.yaml` suffix — the first run wrote an EMPTY contract; the helper now fails loudly on a non-200).
+- **`kotlin-client` module** applies `io.github.siloverse.openapi-client`: `./gradlew :kotlin-client:generateClient` regenerates `src/main/kotlin/io/github/siloverse/user/client/{api,model,infrastructure,configuration}` from the contract (openapi-generator 7.26.0, `kotlin` + `jvm-spring-restclient`, Jackson 3, Boot 4). Sources are COMMITTED and released with the silo (`io.github.siloverse.user-silo:kotlin-client:<silo version>`). A consumer gets `UserControllerApi.create(CreateUserRequest)`, a `RestClient` bean `user-silo-client` from `clients.user-silo.url`, and may add OAuth2 through a `Consumer<RestClient.Builder>` bean named `user-silo-customizer`.
+- `OpenApiConfiguration` imports the openapi-springdoc configuration plus the pagination/selector/projector configurations, so future list endpoints are described completely.
+- **Pending:** siloverse-build 1.12.0 (PR #16) and openapi-springdoc 0.1.0 are LOCAL (mavenLocal) until released — CI is red only for that; the `[versions] siloverse-openapi = "0.1.0-SNAPSHOT"` pin and the 1.12.0 parent pin resolve from mavenLocal. Nice-to-have journaled: an `OpenAPI` info bean (title = application name, version = silo version) instead of springdoc's "OpenAPI definition v0".
+- **Next:** auth-silo switches from its hand-written `userSiloClient` + the `web` contract jar to this client; then the `web` module can go.

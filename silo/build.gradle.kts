@@ -1,5 +1,6 @@
 plugins {
     id("io.github.siloverse.spring-boot-application")
+    id("io.github.siloverse.openapi-spec")
 }
 
 application {
@@ -19,6 +20,7 @@ dependencies {
     implementation(local.bundles.siloverse.messaging)
     implementation(local.bundles.spring.security)
     implementation(libs.bundles.siloverse.observability)
+    implementation(local.siloverse.openapi.springdoc)
 
     runtimeOnly(local.flyway.postgresql)
     runtimeOnly(local.postgresql)
