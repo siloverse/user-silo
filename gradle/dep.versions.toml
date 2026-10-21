@@ -1,7 +1,6 @@
 [versions]
 siloverse-messaging = "1.0.12"
-# TEMPORARY snapshot pin (mavenLocal) until openapi 0.1.0 is released from java-library.
-siloverse-openapi = "0.1.0-SNAPSHOT"
+siloverse-openapi = "0.1.0"
 
 [libraries]
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
