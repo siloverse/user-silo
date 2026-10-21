@@ -79,3 +79,7 @@ _Last updated: 2026-10-11. This document is the arbiter: if Claude asserts somet
 - `OpenApiConfiguration` imports the openapi-springdoc configuration plus the pagination/selector/projector configurations, so future list endpoints are described completely.
 - **Pending:** siloverse-build 1.12.0 (PR #16) and openapi-springdoc 0.1.0 are LOCAL (mavenLocal) until released — CI is red only for that; the `[versions] siloverse-openapi = "0.1.0-SNAPSHOT"` pin and the 1.12.0 parent pin resolve from mavenLocal. Nice-to-have journaled: an `OpenAPI` info bean (title = application name, version = silo version) instead of springdoc's "OpenAPI definition v0".
 - **Next:** auth-silo switches from its hand-written `userSiloClient` + the `web` contract jar to this client; then the `web` module can go.
+
+## Live proof of the generated client (2026-10-21)
+
+auth-silo registered a user through `io.github.siloverse.user-silo:kotlin-client:1.1.5` against this silo running on the host: 201 + 409, row in `user_silo.users`, one Tempo trace across both services (`869946b4390ebda150cc7bf8463eefb1`). Details in auth-silo/CHECKPOINT.md. Journaled follow-up: mark `CreateUserResponse.id` required so the generated model is non-null; an `OpenAPI` info bean for title/version.
